@@ -1,0 +1,6 @@
+id,amount,category,date,description
+32b942d4-966d-484f-8262-b586451c3c35,10.0,Food,2025-10-03,
+bbd3cd3b-7e5a-4ba1-abf7-ce4937b6d219,29.0,Food,2025-10-02,milk
+1e5c65f2-d827-4413-b986-e018d812707b,69.0,Entertainment,2025-10-04,music
+ab40660b-1434-4ecf-a055-619dd26828f1,978.0,Shopping,2025-10-04,Cloth
+93114044-da01-489d-88c4-03fee1cc626e,120.0,Transport,2025-10-01,metro card

@@ -1,0 +1,8 @@
+date,subject,chapter,duration_minutes,confidence_rating,notes,timestamp
+2025-10-01,Python,Loop,45,4,,2025-10-04T16:11:11.034176
+2025-10-04,Cloud Computing,,2,4,,2025-10-04T17:36:36.909399
+2025-10-04,History,Live Session,1,4,Completed via live timer.,2025-10-04T17:42:20.648725
+2025-10-01,SE,DFD,55,5,,2025-10-04T18:02:55.782644
+2025-10-04,Cpp,Pointers ,30,2,,2025-10-04T18:03:29.660919
+2025-10-02,SE,erd,30,1,,2025-10-04T18:08:08.394659
+2025-10-02,Python,Random Forest ,55,4,,2025-10-04T18:08:37.595469
