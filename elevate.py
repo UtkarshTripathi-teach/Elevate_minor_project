@@ -375,7 +375,7 @@ def show_expense_tracker():
     with tab1:
         st.subheader("Log a New Expense")
         with st.form("expense_form", clear_on_submit=True):
-            amount = st.number_input("Amount (₹)", min_value=0.01, step=0.01, format="%.2f")
+            amount = st.number_input("Amount (₹)", min_value=1.00, step=1.00, format="%.2f")
             category = st.selectbox("Category", ["Food", "Transport", "Utilities", "Entertainment", "Shopping", "Health", "Other"])
             date = st.date_input("Date", datetime.now())
             description = st.text_input("Description (optional)")
