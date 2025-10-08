@@ -9,7 +9,7 @@ import time
 import io
 from utils import format_time, calculate_streak, validate_study_session
 
-# Import custom modules
+# Import your custom modules
 from data_manager import DataManager
 from ml_analyzer import MLAnalyzer
 from gamification import GamificationSystem
@@ -91,7 +91,6 @@ def show_user_selection():
                     st.error("Please fill all fields and ensure passwords match.")
 
 def show_main_app():
-    bonus_clicked = False
     with st.sidebar:
         st.markdown('<h1 style="font-size:48px;">⏏︎ Elevate</h1>', unsafe_allow_html=True)
         st.markdown(f'<h1 style="font-size:24px;">Welcome, {st.session_state.current_user}!', unsafe_allow_html=True)
@@ -105,6 +104,7 @@ def show_main_app():
 
         st.markdown("---")
         
+        # REMOVED: "Placement Prediction" from navigation
         page_options = ["Dashboard", "Study Tracker", "Expense Tracker", "Task Tracker", "Your Report", "Settings"]
         page = st.radio("Navigation", page_options)
 
@@ -115,22 +115,16 @@ def show_main_app():
             st.session_state.session_just_completed = False
             st.rerun()
 
-        st.markdown("---")
-        if st.button("Bonus Features"):
-            bonus_clicked = True
-
-    if bonus_clicked:
-        show_bonus_features()
-    else:
-        page_functions = {
-            "Dashboard": show_dashboard, 
-            "Study Tracker": show_study_logging,
-            "Expense Tracker": show_expense_tracker, 
-            "Task Tracker": show_task_tracker,
-            "Your Report": show_your_report,
-            "Settings": show_settings,
-        }
-        page_functions[page]()
+    # REMOVED: "Placement Prediction" from routing
+    page_functions = {
+        "Dashboard": show_dashboard, 
+        "Study Tracker": show_study_logging,
+        "Expense Tracker": show_expense_tracker, 
+        "Task Tracker": show_task_tracker,
+        "Your Report": show_your_report,
+        "Settings": show_settings,
+    }
+    page_functions[page]()
 
 
 def show_dashboard():
@@ -139,7 +133,6 @@ def show_dashboard():
     study_data = st.session_state.data_manager.get_user_data(user)
     expense_data = st.session_state.data_manager.get_user_expenses(user)
     task_data = st.session_state.data_manager.get_user_tasks(user)
-    st.markdown("---")
 
     st.subheader("Today's Snapshot")
     kpi1, kpi2, kpi3 = st.columns(3)
@@ -153,38 +146,22 @@ def show_dashboard():
     
     st.markdown("---")
 
-    # --- New Visuals Section ---
     col1, col2, col3 = st.columns(3)
 
     with col1:
         st.subheader("Weekly Study Consistency")
         if not study_data.empty:
-            # Create a heatmap of study activity for the last 12 weeks
             today = datetime.now().date()
-            start_date = today - timedelta(days=84) # approx 12 weeks
-            
-            # Create a full date range
+            start_date = today - timedelta(days=84)
             date_range = pd.to_datetime(pd.date_range(start=start_date, end=today))
-            
             study_counts = pd.to_datetime(study_data['date']).value_counts().reindex(date_range, fill_value=0)
-            
-            # Prepare data for heatmap
             heatmap_data = pd.DataFrame({'date': study_counts.index, 'sessions': study_counts.values})
             heatmap_data['weekday'] = heatmap_data['date'].dt.day_name()
             heatmap_data['week'] = heatmap_data['date'].dt.isocalendar().week
-            
-            # Pivot table for heatmap
             heatmap_pivot = heatmap_data.pivot_table(index='weekday', columns='week', values='sessions', aggfunc='sum').fillna(0)
-            # Order weekdays correctly
             weekday_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
             heatmap_pivot = heatmap_pivot.reindex(weekday_order)
-
-            fig = go.Figure(data=go.Heatmap(
-                   z=heatmap_pivot.values,
-                   x=heatmap_pivot.columns,
-                   y=heatmap_pivot.index,
-                   hoverongaps=False,
-                   colorscale='Greens'))
+            fig = go.Figure(data=go.Heatmap(z=heatmap_pivot.values, x=heatmap_pivot.columns, y=heatmap_pivot.index, hoverongaps=False, colorscale='Greens'))
             fig.update_layout(title='Study Sessions per Day', height=350)
             st.plotly_chart(fig, use_container_width=True)
         else:
@@ -193,13 +170,10 @@ def show_dashboard():
     with col2:
         st.subheader("Monthly Budget Overview")
         if not expense_data.empty:
-            # Gauge chart for monthly spending
-            monthly_budget = 20000  # Example budget
+            monthly_budget = 20000 
             fig = go.Figure(go.Indicator(
-                mode = "gauge+number",
-                value = monthly_expenses,
-                domain = {'x': [0, 1], 'y': [0, 1]},
-                title = {'text': "Spending vs. Budget"},
+                mode = "gauge+number", value = monthly_expenses,
+                domain = {'x': [0, 1], 'y': [0, 1]}, title = {'text': "Spending vs. Budget"},
                 gauge = {
                     'axis': {'range': [None, monthly_budget], 'tickwidth': 1, 'tickcolor': "darkblue"},
                     'bar': {'color': "#007bff"},
@@ -216,14 +190,10 @@ def show_dashboard():
     with col3:
         st.subheader("Task Status")
         if not task_data.empty:
-            # Donut chart for task status
             status_counts = task_data['status'].value_counts().reset_index()
             status_counts.columns = ['status', 'count']
-            
-            fig = px.pie(status_counts, names='status', values='count', 
-                         title='Task Breakdown', hole=.4,
-                         color='status',
-                         color_discrete_map={'Completed':'#28a745', 'Pending':'#ffc107'})
+            fig = px.pie(status_counts, names='status', values='count', title='Task Breakdown', hole=.4,
+                         color='status', color_discrete_map={'Completed':'#28a745', 'Pending':'#ffc107'})
             fig.update_layout(height=350)
             st.plotly_chart(fig, use_container_width=True)
         else:
@@ -564,47 +534,6 @@ def show_your_report():
         )
         st.session_state.pdf_ready = False
         st.session_state.pdf_buffer = None
-
-def show_bonus_features():
-    st.header("Bonus Features")
-    st.info("This section contains special features, including ML-powered predictors.")
-    st.markdown("---")
-
-    st.subheader("🎓 Placement Prediction")
-    st.markdown("- *based on Kaggle Dataset*")
-    st.image("kagglelogo.png", width=120)
-    import pickle
-    import numpy as np
-    try:
-        with open("scaler.pkl", "rb") as f: scaler = pickle.load(f)
-        with open("placement_prediction_model.pkl", "rb") as f: model = pickle.load(f)
-        
-        cgpa = st.number_input("CGPA", 0.0, 10.0, 7.0, step=0.1)
-        internships = st.number_input("Internships (count)", 0, 10, 0, step=1)
-        projects = st.number_input("Projects (count)", 0, 10, 0, step=1)
-        workshops = st.number_input("Workshops/Certifications (count)", 0, 20, 0, step=1)
-        aptitude = st.number_input("Aptitude Test Score", 0, 100, 50, step=1)
-        softskills = st.slider("Soft Skills Rating (1-10)", 1, 10, 5)
-        extra = st.slider("Extracurricular Activities (1-10)", 1, 10, 5)
-        training = st.selectbox("Placement Training", ["Yes", "No"])
-        ssc_marks = st.number_input("SSC Marks:10th grade (%)", 0.0, 100.0, 60.0, step=0.1)
-        hsc_marks = st.number_input("HSC Marks:12th grade (%)", 0.0, 100.0, 60.0, step=0.1)
-        training_map = {"Yes": 1, "No": 0}
-        features = np.array([cgpa, internships, projects, workshops, aptitude, softskills, extra, training_map[training], ssc_marks, hsc_marks]).reshape(1, -1)
-        features_scaled = scaler.transform(features)
-        if st.button("Predict Placement"):
-            prediction = model.predict(features_scaled)[0]
-            with st.spinner("Analyzing profile..."):
-                time.sleep(2)
-            if prediction == 1:
-                st.success("Candidate is likely to be Placed.")
-            else:
-                st.warning("Candidate is unlikely to be Placed.")
-
-    except FileNotFoundError:
-        st.error("Model files (scaler.pkl, placement_prediction_model.pkl) not found. Please ensure they are in the same directory.")
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
 
 def show_settings():
     st.header("⚙️ Settings")
