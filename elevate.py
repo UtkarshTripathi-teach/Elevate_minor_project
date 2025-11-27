@@ -171,22 +171,90 @@ def show_dashboard():
         st.subheader("Monthly Budget Overview")
         if not expense_data.empty:
             monthly_budget = 20000 
-            fig = go.Figure(go.Indicator(
-                mode = "gauge+number", value = monthly_expenses,
-                domain = {'x': [0, 1], 'y': [0, 1]}, title = {'text': "Spending vs. Budget"},
-                gauge = {
-                    'axis': {'range': [None, monthly_budget], 'tickwidth': 1, 'tickcolor': "darkblue"},
-                    'bar': {'color': "#007bff"},
-                    'steps' : [
-                         {'range': [0, monthly_budget * 0.5], 'color': 'lightgreen'},
-                         {'range': [monthly_budget * 0.5, monthly_budget * 0.8], 'color': 'yellow'},
-                         {'range': [monthly_budget * 0.8, monthly_budget], 'color': 'red'}],
-                }))
-            fig.update_layout(height=350)
-            st.plotly_chart(fig, use_container_width=True)
+    
+            this_month = datetime.now().month
+            current_month_data = expense_data[pd.to_datetime(expense_data['date']).dt.month == this_month]
+            
+            if current_month_data.empty:
+                 st.info("No expenses logged this month.")
+            else:
+                cat_group = current_month_data.groupby('category')['amount'].sum().sort_values(ascending=False)
+                
+                category_colors = {
+                    'Food': '#ff9900',          # Orange
+                    'Transport': '#3366cc',     # Blue
+                    'Utilities': '#109618',     # Green
+                    'Entertainment': '#dc3912', # Red
+                    'Shopping': '#990099',      # Purple
+                    'Health': '#0099c6',        # Teal
+                    'Other': '#dd4477'          # Pink
+                }
+
+
+                gauge_steps = []
+                current_value = 0
+                
+                for category, amount in cat_group.items():
+                   
+                    color = category_colors.get(category, '#666666')
+                    
+                    
+                    step = {
+                        'range': [current_value, current_value + amount],
+                        'color': color
+                    }
+                    gauge_steps.append(step)
+                    current_value += amount
+
+               
+                max_range = max(monthly_budget, current_value)
+
+                fig = go.Figure(go.Indicator(
+                    mode = "gauge+number", 
+                    value = current_value,
+                    domain = {'x': [0, 1], 'y': [0, 1]}, 
+                    title = {'text': "Spending Breakdown"},
+                    
+                    number = {'prefix': "₹", 'font': {'size': 24}},
+                    
+                    gauge = {
+                        'axis': {
+                            'range': [None, max_range], 
+                            'tickwidth': 1, 
+                            'tickcolor': "darkblue",
+                            
+                            'tickmode': 'linear',
+                            'tick0': 0,
+                            'dtick': 5000, 
+                        },
+                        
+                       
+                        'bar': {'color': "rgba(0,0,0,0.3)", 'thickness': 0.1}, 
+                        
+                     
+                        'steps': gauge_steps,
+                        
+                   
+                        'threshold': {
+                            'line': {'color': "red", 'width': 4},
+                            'thickness': 0.75,
+                            'value': monthly_budget
+                        }
+                    }))
+                
+                fig.update_layout(height=350, margin=dict(t=50, b=20, l=20, r=20))
+                st.plotly_chart(fig, use_container_width=True)
+
+            
+                st.markdown("**Category Legend:**")
+                legend_cols = st.columns(len(cat_group))
+                for i, (cat, amt) in enumerate(cat_group.items()):
+                    color = category_colors.get(cat, '#666666')
+                   
+                    st.markdown(f"<span style='color:{color};'>●</span> {cat} (₹{amt:,.0f})", unsafe_allow_html=True)
+
         else:
             st.info("Log expenses to see your budget overview.")
-
     with col3:
         st.subheader("Task Status")
         if not task_data.empty:
